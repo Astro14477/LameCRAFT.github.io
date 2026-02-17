@@ -4,177 +4,1183 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LameCRAFT</title>
-
-  <!-- Favicon -->
   <link rel="icon" type="image/jpeg" href="LameCRAFT.jpg" />
-
-  <!-- Google Font for cyber vibe -->
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Orbitron', sans-serif;
+    :root {
+      --neon-green: #00ffaa;
+      --neon-blue: #00c3ff;
+      --neon-purple: #7b61ff;
+      --neon-pink: #ff00ff;
+      --neon-orange: #ff6600;
+      --neon-yellow: #ffff00;
+      --neon-red: #ff0055;
     }
 
-    body {
-      height: 100vh;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
       overflow: hidden;
-      background: radial-gradient(circle at center, #000000 0%, #020617 40%, #000000 100%);
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background: #000;
+      font-family: 'Orbitron', sans-serif;
       color: white;
-      position: relative;
+      cursor: none;
     }
 
-    /* Animated grid background */
-    body::before {
+    /* ===== CUSTOM CURSOR ===== */
+    #cursor {
+      position: fixed;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff, var(--neon-green));
+      pointer-events: none;
+      z-index: 9999;
+      mix-blend-mode: exclusion;
+      transform: translate(-50%, -50%);
+      transition: transform 0.05s linear;
+      box-shadow: 0 0 20px var(--neon-green), 0 0 60px var(--neon-green);
+    }
+    #cursor-trail {
+      position: fixed;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--neon-pink);
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: all 0.15s ease;
+      box-shadow: 0 0 10px var(--neon-pink);
+    }
+
+    /* ===== SCANLINES ===== */
+    body::after {
       content: "";
-      position: absolute;
-      width: 200%;
-      height: 200%;
-      background-image: linear-gradient(rgba(0,255,170,0.05) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(0,255,170,0.05) 1px, transparent 1px);
-      background-size: 60px 60px;
-      animation: gridMove 20s linear infinite;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.15) 2px,
+        rgba(0,0,0,0.15) 4px
+      );
+      pointer-events: none;
+      z-index: 8000;
+      animation: scanMove 8s linear infinite;
+    }
+    @keyframes scanMove {
+      0% { background-position: 0 0; }
+      100% { background-position: 0 100px; }
+    }
+
+    /* ===== VIGNETTE ===== */
+    #vignette {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.9) 100%);
+      pointer-events: none;
+      z-index: 7999;
+    }
+
+    /* ===== WARP CANVAS ===== */
+    #warpCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       z-index: 0;
     }
 
-    @keyframes gridMove {
-      0% { transform: translate(0, 0); }
-      100% { transform: translate(-60px, -60px); }
+    /* ===== GRID ===== */
+    #gridLayer {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+      background-image:
+        linear-gradient(rgba(0,255,170,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,170,0.07) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: gridDrift 15s linear infinite;
+      transform-origin: center;
+    }
+    @keyframes gridDrift {
+      0% { transform: perspective(800px) rotateX(30deg) translate(0, 0); }
+      100% { transform: perspective(800px) rotateX(30deg) translate(0, 60px); }
     }
 
-    .container {
-      text-align: center;
-      z-index: 2;
-      animation: fadeIn 1.5s ease-out, float 6s ease-in-out infinite;
+    /* ===== MAIN SCENE ===== */
+    #scene {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
     }
 
-    .logo {
-      width: 340px;
-      max-width: 85vw;
-      border-radius: 20px;
-      filter: drop-shadow(0 0 25px rgba(0, 255, 170, 0.8))
-              drop-shadow(0 0 60px rgba(0, 195, 255, 0.6));
-      transition: transform 0.4s ease, filter 0.4s ease;
-      animation: pulseGlow 3s infinite alternate, rotateTilt 10s infinite ease-in-out;
+    /* ===== LOGO ===== */
+    .logo-wrap {
+      position: relative;
+      width: 360px;
+      max-width: 80vw;
+      animation: logoFloat 5s ease-in-out infinite, logoBirth 1.5s cubic-bezier(0.23,1,0.32,1) forwards;
     }
-
-    .logo:hover {
-      transform: scale(1.12) rotate(1deg);
-      filter: drop-shadow(0 0 40px rgba(0,255,170,1))
-              drop-shadow(0 0 90px rgba(0,195,255,1));
+    @keyframes logoBirth {
+      0% { opacity: 0; transform: scale(0.3) rotate(-15deg); filter: blur(40px); }
+      60% { opacity: 1; transform: scale(1.1) rotate(3deg); filter: blur(0); }
+      100% { opacity: 1; transform: scale(1) rotate(0deg); }
     }
-
-    .title {
-      margin-top: 35px;
-      font-size: 3.5rem;
-      font-weight: 900;
-      letter-spacing: 14px;
-      text-transform: uppercase;
-      background: linear-gradient(90deg, #00ffaa, #00c3ff, #7b61ff, #00ffaa);
-      background-size: 400% 400%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 0 25px rgba(0,255,170,0.4);
-      animation: gradientFlow 6s ease infinite, glitch 4s infinite;
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      33% { transform: translateY(-14px) rotate(1deg); }
+      66% { transform: translateY(-6px) rotate(-1deg); }
     }
-
-    /* Floating animation */
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-12px); }
-    }
-
-    /* Glow pulse */
-    @keyframes pulseGlow {
-      0% { filter: drop-shadow(0 0 20px rgba(0,255,170,0.6)); }
-      100% { filter: drop-shadow(0 0 70px rgba(0,255,170,1)); }
-    }
-
-    /* Slight tilt rotation */
-    @keyframes rotateTilt {
-      0% { transform: rotate(0deg); }
-      50% { transform: rotate(1.5deg); }
-      100% { transform: rotate(0deg); }
-    }
-
-    /* Gradient animation */
-    @keyframes gradientFlow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    /* Glitch effect */
-    @keyframes glitch {
-      0% { text-shadow: 0 0 10px rgba(0,255,170,0.3); }
-      20% { text-shadow: 2px 0 #00ffaa, -2px 0 #00c3ff; }
-      40% { text-shadow: -2px 0 #7b61ff, 2px 0 #00ffaa; }
-      60% { text-shadow: 0 0 30px rgba(0,255,170,0.8); }
-      100% { text-shadow: 0 0 10px rgba(0,255,170,0.3); }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(40px) scale(0.95); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    /* Particle effect */
-    .particles {
-      position: absolute;
+    .logo-wrap img {
       width: 100%;
-      height: 100%;
+      border-radius: 24px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* RGB border ring */
+    .logo-ring {
+      position: absolute;
+      inset: -6px;
+      border-radius: 30px;
+      background: conic-gradient(
+        var(--neon-green), var(--neon-blue), var(--neon-purple),
+        var(--neon-pink), var(--neon-orange), var(--neon-yellow),
+        var(--neon-red), var(--neon-green)
+      );
+      z-index: 1;
+      animation: ringRotate 2s linear infinite;
+      filter: blur(3px);
+    }
+    @keyframes ringRotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Holographic overlay on logo */
+    .logo-holo {
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      background: linear-gradient(
+        135deg,
+        transparent 0%,
+        rgba(0,255,170,0.15) 25%,
+        transparent 50%,
+        rgba(0,195,255,0.15) 75%,
+        transparent 100%
+      );
+      background-size: 200% 200%;
+      animation: holoShift 3s ease infinite;
+      z-index: 3;
+      pointer-events: none;
+    }
+    @keyframes holoShift {
+      0% { background-position: 0% 0%; }
+      50% { background-position: 100% 100%; }
+      100% { background-position: 0% 0%; }
+    }
+
+    /* ===== TITLE ===== */
+    .title-wrap {
+      position: relative;
+      margin-top: 40px;
+      animation: titleBirth 2s 0.5s cubic-bezier(0.23,1,0.32,1) both;
+    }
+    @keyframes titleBirth {
+      0% { opacity: 0; transform: translateY(30px) skewX(10deg); }
+      100% { opacity: 1; transform: translateY(0) skewX(0deg); }
+    }
+
+    .title-main {
+      font-size: clamp(2rem, 8vw, 4.5rem);
+      font-weight: 900;
+      letter-spacing: 16px;
+      text-transform: uppercase;
+      position: relative;
+      -webkit-text-fill-color: transparent;
+      background: linear-gradient(90deg,
+        var(--neon-green) 0%,
+        var(--neon-blue) 25%,
+        var(--neon-purple) 50%,
+        var(--neon-pink) 75%,
+        var(--neon-green) 100%
+      );
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      animation: titleGradient 3s linear infinite;
+    }
+    @keyframes titleGradient {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+
+    /* Glitch copies */
+    .title-main::before,
+    .title-main::after {
+      content: "LameCRAFT";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+    }
+    .title-main::before {
+      -webkit-text-fill-color: var(--neon-pink);
+      background: none;
+      animation: glitchA 2.5s infinite;
+      z-index: -1;
+    }
+    .title-main::after {
+      -webkit-text-fill-color: var(--neon-blue);
+      background: none;
+      animation: glitchB 3.2s infinite;
+      z-index: -2;
+    }
+    @keyframes glitchA {
+      0%, 95% { clip-path: none; transform: translate(0); opacity: 0; }
+      96% { clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%); transform: translate(-4px, 2px); opacity: 0.8; }
+      97% { clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%); transform: translate(4px, -2px); opacity: 0.8; }
+      98% { clip-path: polygon(0 0, 100% 0, 100% 10%, 0 10%); transform: translate(-2px, 0); opacity: 0.8; }
+      100% { clip-path: none; transform: translate(0); opacity: 0; }
+    }
+    @keyframes glitchB {
+      0%, 92% { clip-path: none; transform: translate(0); opacity: 0; }
+      93% { clip-path: polygon(0 50%, 100% 50%, 100% 70%, 0 70%); transform: translate(6px, -1px); opacity: 0.6; }
+      95% { clip-path: polygon(0 30%, 100% 30%, 100% 45%, 0 45%); transform: translate(-6px, 2px); opacity: 0.6; }
+      100% { clip-path: none; transform: translate(0); opacity: 0; }
+    }
+
+    /* Subtitle scanline text */
+    .subtitle {
+      font-size: clamp(0.5rem, 2vw, 0.75rem);
+      letter-spacing: 8px;
+      color: var(--neon-green);
+      margin-top: 12px;
+      text-align: center;
+      animation: subtitleFlicker 4s infinite;
+      text-shadow: 0 0 10px var(--neon-green);
+    }
+    @keyframes subtitleFlicker {
+      0%, 90%, 100% { opacity: 1; }
+      91% { opacity: 0.2; }
+      92% { opacity: 1; }
+      93% { opacity: 0.3; }
+      94% { opacity: 1; }
+    }
+
+    /* ===== CORNER DECORATIONS ===== */
+    .corner {
+      position: fixed;
+      width: 80px;
+      height: 80px;
+      z-index: 500;
+      animation: cornerPulse 2s ease-in-out infinite alternate;
+    }
+    .corner svg { width: 100%; height: 100%; }
+    .c-tl { top: 20px; left: 20px; }
+    .c-tr { top: 20px; right: 20px; transform: scaleX(-1); }
+    .c-bl { bottom: 20px; left: 20px; transform: scaleY(-1); }
+    .c-br { bottom: 20px; right: 20px; transform: scale(-1,-1); }
+    @keyframes cornerPulse {
+      0% { opacity: 0.4; filter: drop-shadow(0 0 5px var(--neon-green)); }
+      100% { opacity: 1; filter: drop-shadow(0 0 20px var(--neon-green)) drop-shadow(0 0 40px var(--neon-blue)); }
+    }
+
+    /* ===== SIDE HUD ===== */
+    .hud-left, .hud-right {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.45rem;
+      letter-spacing: 3px;
+      color: rgba(0,255,170,0.5);
+      animation: hudFlicker 7s infinite;
+    }
+    .hud-left { left: 20px; text-align: left; }
+    .hud-right { right: 20px; text-align: right; }
+    @keyframes hudFlicker {
+      0%, 85%, 87%, 89%, 100% { opacity: 1; }
+      86%, 88% { opacity: 0.1; }
+    }
+
+    /* ===== STATUS BAR ===== */
+    .status-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 28px;
+      background: rgba(0,255,170,0.05);
+      border-top: 1px solid rgba(0,255,170,0.3);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 30px;
+      z-index: 500;
       overflow: hidden;
+    }
+    .status-item {
+      font-size: 0.45rem;
+      letter-spacing: 3px;
+      color: rgba(0,255,170,0.6);
+      white-space: nowrap;
+      text-shadow: 0 0 8px var(--neon-green);
+    }
+    .status-ticker {
+      animation: ticker 30s linear infinite;
+      white-space: nowrap;
+    }
+    @keyframes ticker {
+      0% { transform: translateX(100vw); }
+      100% { transform: translateX(-200%); }
+    }
+
+    /* ===== EXPLOSION RING ===== */
+    .ring {
+      position: fixed;
+      border-radius: 50%;
+      border: 2px solid var(--neon-green);
+      pointer-events: none;
+      z-index: 9990;
+      animation: ringExpand 1s ease-out forwards;
+    }
+    @keyframes ringExpand {
+      0% { opacity: 1; transform: scale(0.1); }
+      100% { opacity: 0; transform: scale(3); }
+    }
+
+    /* ===== POWER LINES ===== */
+    #powerLines {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* ===== RGB SCAN LINE ===== */
+    #rgbScan {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--neon-green), var(--neon-blue), var(--neon-purple), transparent);
+      filter: blur(1px);
+      z-index: 7000;
+      animation: rgbScanMove 3s linear infinite;
+      box-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--neon-blue);
+    }
+    @keyframes rgbScanMove {
+      0% { top: -5px; }
+      100% { top: 100vh; }
+    }
+
+    /* ===== STAR BURST ===== */
+    .starburst {
+      position: fixed;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    /* ===== HOLOGRAM CIRCLES ===== */
+    .holo-circle {
+      position: fixed;
+      border-radius: 50%;
+      border: 1px solid;
+      pointer-events: none;
+      animation: holoRotate linear infinite;
+    }
+    @keyframes holoRotate {
+      0% { transform: translate(-50%, -50%) rotate(0deg); }
+      100% { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* ===== DATA RAIN (Matrix) ===== */
+    #matrixCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 2;
+      opacity: 0.15;
+    }
+
+    /* ===== SHOCKWAVE ===== */
+    #shockwave {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 3px solid var(--neon-green);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 200;
+      animation: shockwavePulse 4s ease-out infinite;
+    }
+    @keyframes shockwavePulse {
+      0% { width: 10px; height: 10px; opacity: 1; border-color: var(--neon-green); }
+      50% { border-color: var(--neon-blue); }
+      100% { width: 120vmax; height: 120vmax; opacity: 0; border-color: var(--neon-purple); }
+    }
+
+    /* ===== LIGHTNING ===== */
+    #lightningCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    /* ===== NEON BARS ===== */
+    .neon-bar {
+      position: fixed;
+      height: 2px;
+      left: 0;
+      width: 100%;
+      pointer-events: none;
+      z-index: 5;
+      animation: barSlide linear infinite;
+    }
+    @keyframes barSlide {
+      0% { transform: translateX(-100%); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateX(100%); opacity: 0; }
+    }
+
+    /* ===== LOGO EXTRA FX ===== */
+    .logo-shards {
+      position: absolute;
+      inset: -20px;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .shard {
+      position: absolute;
+      width: 4px;
+      background: var(--neon-green);
+      border-radius: 2px;
+      animation: shardOrbit linear infinite;
+      transform-origin: center 120px;
+    }
+    @keyframes shardOrbit {
+      0% { transform: rotate(0deg) translateY(-10px); }
+      100% { transform: rotate(360deg) translateY(-10px); }
+    }
+
+    /* ===== NOISE OVERLAY ===== */
+    #noiseCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 6;
+      opacity: 0.04;
+      pointer-events: none;
+    }
+
+    /* ===== FLOATING GLYPHS ===== */
+    .glyph {
+      position: fixed;
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(10px, 2vw, 18px);
+      pointer-events: none;
+      z-index: 10;
+      animation: glyphFloat linear infinite;
+      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+    @keyframes glyphFloat {
+      0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+      5% { opacity: 1; }
+      95% { opacity: 1; }
+      100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* ===== HYPERSPACE WARP ===== */
+    #hyperspaceCanvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       z-index: 1;
     }
 
-    .particle {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      background: #00ffaa;
+    /* ===== CLICK RIPPLE ===== */
+    .ripple {
+      position: fixed;
       border-radius: 50%;
-      opacity: 0.7;
-      animation: rise linear infinite;
+      border: 2px solid var(--neon-pink);
+      pointer-events: none;
+      z-index: 9995;
+      animation: rippleOut 0.8s ease-out forwards;
+    }
+    @keyframes rippleOut {
+      0% { width: 0; height: 0; opacity: 1; transform: translate(-50%,-50%); }
+      100% { width: 200px; height: 200px; opacity: 0; transform: translate(-50%,-50%); }
     }
 
-    @keyframes rise {
-      from {
-        transform: translateY(100vh) scale(0.5);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(-10vh) scale(1.2);
-        opacity: 1;
-      }
+    /* Crazy load screen */
+    #loadScreen {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      animation: loadFade 0.5s 3s ease-out forwards;
+    }
+    @keyframes loadFade {
+      to { opacity: 0; pointer-events: none; }
+    }
+    #loadBar {
+      width: 300px;
+      max-width: 80vw;
+      height: 4px;
+      background: rgba(0,255,170,0.2);
+      border: 1px solid var(--neon-green);
+      overflow: hidden;
+    }
+    #loadProgress {
+      height: 100%;
+      background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
+      width: 0%;
+      animation: loadUp 2.8s cubic-bezier(0.4,0,0.2,1) forwards;
+      box-shadow: 0 0 20px var(--neon-green);
+    }
+    @keyframes loadUp {
+      0% { width: 0%; }
+      60% { width: 70%; }
+      90% { width: 90%; }
+      100% { width: 100%; }
+    }
+    #loadText {
+      font-size: 0.6rem;
+      letter-spacing: 5px;
+      color: var(--neon-green);
+      animation: loadTextBlink 0.3s infinite;
+    }
+    @keyframes loadTextBlink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0.3; }
+    }
+    #loadPercent {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--neon-green);
+      text-shadow: 0 0 30px var(--neon-green);
     }
   </style>
 </head>
 <body>
-  <div class="particles" id="particles"></div>
 
-  <div class="container">
-    <img src="LameCRAFT.jpg" alt="LameCRAFT Logo" class="logo" />
-    <div class="title">LameCRAFT</div>
+<!-- LOAD SCREEN -->
+<div id="loadScreen">
+  <div id="loadPercent">0%</div>
+  <div id="loadBar"><div id="loadProgress"></div></div>
+  <div id="loadText">INITIALIZING LAMECRAFT SYSTEMS...</div>
+</div>
+
+<!-- Cursors -->
+<div id="cursor"></div>
+<div id="cursor-trail"></div>
+
+<!-- RGB scan line -->
+<div id="rgbScan"></div>
+
+<!-- Shockwave -->
+<div id="shockwave"></div>
+
+<!-- Vignette -->
+<div id="vignette"></div>
+
+<!-- Canvases -->
+<canvas id="hyperspaceCanvas"></canvas>
+<canvas id="matrixCanvas"></canvas>
+<canvas id="lightningCanvas"></canvas>
+<canvas id="noiseCanvas"></canvas>
+<svg id="powerLines" xmlns="http://www.w3.org/2000/svg"></svg>
+
+<!-- Grid -->
+<div id="gridLayer"></div>
+
+<!-- Corner Decorations -->
+<div class="corner c-tl">
+  <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5 75 L5 5 L75 5" stroke="#00ffaa" stroke-width="2" fill="none"/>
+    <path d="M5 55 L5 5 L55 5" stroke="#00c3ff" stroke-width="1" fill="none" opacity="0.5"/>
+    <circle cx="5" cy="5" r="4" fill="#00ffaa"/>
+    <line x1="5" y1="30" x2="15" y2="30" stroke="#00ffaa" stroke-width="1"/>
+    <line x1="5" y1="50" x2="10" y2="50" stroke="#00ffaa" stroke-width="1"/>
+    <line x1="30" y1="5" x2="30" y2="15" stroke="#00ffaa" stroke-width="1"/>
+    <line x1="50" y1="5" x2="50" y2="10" stroke="#00ffaa" stroke-width="1"/>
+  </svg>
+</div>
+<div class="corner c-tr">
+  <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5 75 L5 5 L75 5" stroke="#00ffaa" stroke-width="2" fill="none"/>
+    <path d="M5 55 L5 5 L55 5" stroke="#00c3ff" stroke-width="1" fill="none" opacity="0.5"/>
+    <circle cx="5" cy="5" r="4" fill="#00ffaa"/>
+    <line x1="5" y1="30" x2="15" y2="30" stroke="#00ffaa" stroke-width="1"/>
+    <line x1="5" y1="50" x2="10" y2="50" stroke="#00ffaa" stroke-width="1"/>
+    <line x1="30" y1="5" x2="30" y2="15" stroke="#00ffaa" stroke-width="1"/>
+    <line x1="50" y1="5" x2="50" y2="10" stroke="#00ffaa" stroke-width="1"/>
+  </svg>
+</div>
+<div class="corner c-bl">
+  <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5 75 L5 5 L75 5" stroke="#00ffaa" stroke-width="2" fill="none"/>
+    <path d="M5 55 L5 5 L55 5" stroke="#00c3ff" stroke-width="1" fill="none" opacity="0.5"/>
+    <circle cx="5" cy="5" r="4" fill="#00ffaa"/>
+    <line x1="5" y1="30" x2="15" y2="30" stroke="#00ffaa" stroke-width="1"/>
+    <line x1="30" y1="5" x2="30" y2="15" stroke="#00ffaa" stroke-width="1"/>
+  </svg>
+</div>
+<div class="corner c-br">
+  <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5 75 L5 5 L75 5" stroke="#00ffaa" stroke-width="2" fill="none"/>
+    <circle cx="5" cy="5" r="4" fill="#00ffaa"/>
+  </svg>
+</div>
+
+<!-- HUD -->
+<div class="hud-left">
+  <span>SYS://LAMECRAFT</span>
+  <span>VER: 9.9.9</span>
+  <span id="fps">FPS: --</span>
+  <span id="hud-time">--:--:--</span>
+  <span>STATUS: EPIC</span>
+  <span>POWER: ∞</span>
+  <span>LEVEL: MAX</span>
+  <span>SWAG: ABSOLUTE</span>
+</div>
+<div class="hud-right">
+  <span>COORD: 0.00 / 0.00</span>
+  <span id="hud-mouse">MOUSE: 0,0</span>
+  <span>VOXELS: ∞</span>
+  <span>BIOMES: ALL</span>
+  <span>MOBS: 1337</span>
+  <span>MODE: CREATIVE</span>
+  <span>WORLD: ∞</span>
+  <span>SEED: 42</span>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <span class="status-item">◉ LIVE</span>
+  <span class="status-item">SYS.OK</span>
+  <span class="status-item status-ticker">
+    ▸ LAMECRAFT — THE MOST LAME AND MOST EPIC CRAFT SIMULTANEOUSLY ▸ WARNING: TOO MUCH SWAG ▸ DO NOT STARE DIRECTLY AT THE LOGO ▸ CRAFTING TABLE: OVERLOADED ▸ DIAMONDS FOUND: YES ▸ CREEPERS: DEFEATED ▸ THIS IS NOT MINECRAFT BUT IT'S LAMECRAFT ▸ LAME BUT LEGENDARY ▸
+  </span>
+</div>
+
+<!-- HOLOGRAM CIRCLES -->
+<div id="holoRings"></div>
+
+<!-- MAIN SCENE -->
+<div id="scene">
+  <div class="logo-wrap">
+    <div class="logo-ring"></div>
+    <img src="LameCRAFT.jpg" alt="LameCRAFT Logo" class="logo" id="mainLogo" />
+    <div class="logo-holo"></div>
+    <div class="logo-shards" id="shards"></div>
   </div>
 
-  <script>
-    // Generate floating particles
-    const particleContainer = document.getElementById('particles');
+  <div class="title-wrap">
+    <div class="title-main">LameCRAFT</div>
+    <div class="subtitle">◈ THE ULTIMATE LAME EXPERIENCE ◈</div>
+  </div>
+</div>
 
-    for (let i = 0; i < 40; i++) {
-      const particle = document.createElement('div');
-      particle.classList.add('particle');
-      particle.style.left = Math.random() * 100 + 'vw';
-      particle.style.animationDuration = (6 + Math.random() * 8) + 's';
-      particle.style.animationDelay = Math.random() * 5 + 's';
-      particleContainer.appendChild(particle);
+<script>
+// ===== LOAD SCREEN =====
+(function() {
+  const pct = document.getElementById('loadPercent');
+  let p = 0;
+  const iv = setInterval(() => {
+    p = Math.min(100, p + Math.random() * 4 + 1);
+    pct.textContent = Math.floor(p) + '%';
+    if (p >= 100) { pct.textContent = '100%'; clearInterval(iv); }
+  }, 80);
+})();
+
+// ===== CURSOR =====
+const cursor = document.getElementById('cursor');
+const trail = document.getElementById('cursor-trail');
+let mx = 0, my = 0, tx = 0, ty = 0;
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+  document.getElementById('hud-mouse').textContent = `MOUSE: ${mx},${my}`;
+});
+setInterval(() => {
+  tx += (mx - tx) * 0.12;
+  ty += (my - ty) * 0.12;
+  trail.style.left = tx + 'px';
+  trail.style.top = ty + 'px';
+}, 16);
+
+// Click ripple
+document.addEventListener('click', e => {
+  for (let i = 0; i < 3; i++) {
+    const r = document.createElement('div');
+    r.className = 'ripple';
+    r.style.left = e.clientX + 'px';
+    r.style.top = e.clientY + 'px';
+    r.style.animationDelay = (i * 0.15) + 's';
+    r.style.borderColor = ['var(--neon-pink)', 'var(--neon-green)', 'var(--neon-blue)'][i];
+    document.body.appendChild(r);
+    setTimeout(() => r.remove(), 1200);
+  }
+});
+
+// ===== TIME HUD =====
+setInterval(() => {
+  const n = new Date();
+  document.getElementById('hud-time').textContent =
+    [n.getHours(), n.getMinutes(), n.getSeconds()].map(x => String(x).padStart(2,'0')).join(':');
+}, 1000);
+
+// ===== HYPERSPACE CANVAS (Star warp) =====
+(function() {
+  const c = document.getElementById('hyperspaceCanvas');
+  const ctx = c.getContext('2d');
+  let W, H, stars = [];
+  function resize() {
+    W = c.width = window.innerWidth;
+    H = c.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for (let i = 0; i < 250; i++) {
+    stars.push({
+      x: Math.random() * 2 - 1,
+      y: Math.random() * 2 - 1,
+      z: Math.random(),
+      pz: 0
+    });
+  }
+
+  const colors = ['#00ffaa', '#00c3ff', '#7b61ff', '#ffffff', '#ff00ff'];
+  let frame = 0;
+  let fps = 0, fpsFrames = 0, fpsLast = performance.now();
+
+  function draw() {
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.fillRect(0, 0, W, H);
+
+    const cx = W / 2, cy = H / 2;
+    const speed = 0.004;
+
+    stars.forEach(s => {
+      s.pz = s.z;
+      s.z -= speed;
+      if (s.z <= 0) {
+        s.x = Math.random() * 2 - 1;
+        s.y = Math.random() * 2 - 1;
+        s.z = 1;
+        s.pz = 1;
+      }
+
+      const sx = (s.x / s.z) * W * 0.5 + cx;
+      const sy = (s.y / s.z) * H * 0.5 + cy;
+      const px = (s.x / s.pz) * W * 0.5 + cx;
+      const py = (s.y / s.pz) * H * 0.5 + cy;
+
+      const size = Math.max(0, (1 - s.z) * 3);
+      const col = colors[Math.floor(s.x * 5 + 10) % colors.length];
+
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(sx, sy);
+      ctx.strokeStyle = col;
+      ctx.lineWidth = size;
+      ctx.globalAlpha = (1 - s.z) * 0.9;
+      ctx.stroke();
+    });
+    ctx.globalAlpha = 1;
+
+    frame++;
+    fpsFrames++;
+    const now = performance.now();
+    if (now - fpsLast > 500) {
+      fps = Math.round(fpsFrames / ((now - fpsLast) / 1000));
+      fpsFrames = 0;
+      fpsLast = now;
+      document.getElementById('fps').textContent = 'FPS: ' + fps;
     }
-  </script>
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ===== MATRIX RAIN =====
+(function() {
+  const c = document.getElementById('matrixCanvas');
+  const ctx = c.getContext('2d');
+  let W, H;
+  function resize() { W = c.width = window.innerWidth; H = c.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const chars = 'LAMECRAFTABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*!<>[]{}';
+  const fontSize = 14;
+  let cols, drops;
+  function initDrops() {
+    cols = Math.floor(W / fontSize);
+    drops = Array(cols).fill(1).map(() => Math.random() * -50);
+  }
+  initDrops();
+  window.addEventListener('resize', initDrops);
+
+  function draw() {
+    ctx.fillStyle = 'rgba(0,0,0,0.05)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.font = fontSize + 'px Orbitron, monospace';
+
+    for (let i = 0; i < drops.length; i++) {
+      const ch = chars[Math.floor(Math.random() * chars.length)];
+      const brightness = Math.random();
+      if (brightness > 0.95) ctx.fillStyle = '#ffffff';
+      else if (brightness > 0.7) ctx.fillStyle = '#00ffaa';
+      else ctx.fillStyle = '#007744';
+
+      ctx.fillText(ch, i * fontSize, drops[i] * fontSize);
+      if (drops[i] * fontSize > H && Math.random() > 0.975) drops[i] = 0;
+      drops[i] += 0.5;
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ===== LIGHTNING CANVAS =====
+(function() {
+  const c = document.getElementById('lightningCanvas');
+  const ctx = c.getContext('2d');
+  let W, H;
+  function resize() { W = c.width = window.innerWidth; H = c.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function bolt(x1, y1, x2, y2, offset, iter) {
+    if (iter <= 0) {
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      return;
+    }
+    const mx = (x1 + x2) / 2 + (Math.random() - 0.5) * offset;
+    const my = (y1 + y2) / 2 + (Math.random() - 0.5) * offset;
+    bolt(x1, y1, mx, my, offset / 2, iter - 1);
+    bolt(mx, my, x2, y2, offset / 2, iter - 1);
+    if (Math.random() < 0.3) {
+      const bx = mx + (Math.random() - 0.5) * offset * 2;
+      const by = my + (Math.random() - 0.5) * offset * 2;
+      bolt(mx, my, bx, by, offset / 3, iter - 2);
+    }
+  }
+
+  const neonColors = ['#00ffaa', '#00c3ff', '#7b61ff', '#ff00ff', '#ffff00', '#ff0055'];
+
+  function flash() {
+    ctx.clearRect(0, 0, W, H);
+    const n = 2 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < n; i++) {
+      const col = neonColors[Math.floor(Math.random() * neonColors.length)];
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 1 + Math.random() * 2;
+      ctx.shadowColor = col;
+      ctx.shadowBlur = 20;
+      ctx.globalAlpha = 0.6 + Math.random() * 0.4;
+
+      const startX = Math.random() * W;
+      bolt(startX, 0, startX + (Math.random() - 0.5) * W * 0.4, H * (0.4 + Math.random() * 0.6), 150, 7);
+    }
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+
+    setTimeout(() => {
+      ctx.clearRect(0, 0, W, H);
+    }, 80 + Math.random() * 100);
+
+    setTimeout(flash, 1500 + Math.random() * 4000);
+  }
+  setTimeout(flash, 1000);
+})();
+
+// ===== NOISE CANVAS =====
+(function() {
+  const c = document.getElementById('noiseCanvas');
+  const ctx = c.getContext('2d');
+  let W, H;
+  function resize() { W = c.width = window.innerWidth; H = c.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function drawNoise() {
+    const img = ctx.createImageData(W, H);
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const v = Math.random() * 255;
+      d[i] = d[i+1] = d[i+2] = v;
+      d[i+3] = 20;
+    }
+    ctx.putImageData(img, 0, 0);
+    requestAnimationFrame(drawNoise);
+  }
+  drawNoise();
+})();
+
+// ===== HOLOGRAM RINGS =====
+(function() {
+  const container = document.getElementById('holoRings');
+  const W = window.innerWidth, H = window.innerHeight;
+  const cx = W / 2, cy = H / 2;
+  const colors = ['#00ffaa', '#00c3ff', '#7b61ff', '#ff00ff'];
+  const sizes = [200, 320, 450, 600, 800];
+  sizes.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.className = 'holo-circle';
+    d.style.cssText = `
+      left: ${cx}px; top: ${cy}px;
+      width: ${s}px; height: ${s}px;
+      margin-left: ${-s/2}px; margin-top: ${-s/2}px;
+      border-color: ${colors[i % colors.length]};
+      opacity: ${0.08 + i * 0.02};
+      animation-duration: ${8 + i * 3}s;
+      ${i % 2 === 0 ? 'animation-direction: reverse;' : ''}
+      box-shadow: 0 0 10px ${colors[i % colors.length]};
+      position: fixed;
+    `;
+    container.appendChild(d);
+  });
+})();
+
+// ===== ORBITAL SHARDS around logo =====
+(function() {
+  const c = document.getElementById('shards');
+  const colors = ['#00ffaa','#00c3ff','#7b61ff','#ff00ff','#ffff00'];
+  for (let i = 0; i < 12; i++) {
+    const s = document.createElement('div');
+    s.className = 'shard';
+    const h = 10 + Math.random() * 30;
+    const col = colors[i % colors.length];
+    s.style.cssText = `
+      height: ${h}px;
+      top: 50%; left: 50%;
+      margin-top: -${h/2}px;
+      margin-left: -2px;
+      background: ${col};
+      box-shadow: 0 0 8px ${col};
+      transform-origin: 2px ${100 + i * 8}px;
+      animation-duration: ${3 + i * 0.7}s;
+      animation-delay: ${-i * 0.5}s;
+      opacity: ${0.4 + Math.random() * 0.6};
+    `;
+    c.appendChild(s);
+  }
+})();
+
+// ===== GLYPHS FLOATING UP =====
+(function() {
+  const symbols = ['◈','◉','◊','⬡','⬢','△','▲','◀','▷','⚡','✦','✧','⊕','⊗','⟁','⌬'];
+  const colors = ['#00ffaa','#00c3ff','#7b61ff','#ff00ff','#ffff00','#ff0055'];
+
+  function spawnGlyph() {
+    const el = document.createElement('div');
+    el.className = 'glyph';
+    el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    const col = colors[Math.floor(Math.random() * colors.length)];
+    el.style.background = col;
+    el.style.left = (Math.random() * 95) + 'vw';
+    el.style.animationDuration = (6 + Math.random() * 10) + 's';
+    el.style.animationDelay = '0s';
+    el.style.fontSize = (10 + Math.random() * 20) + 'px';
+    el.style.opacity = 0.3 + Math.random() * 0.5;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 18000);
+    setTimeout(spawnGlyph, 300 + Math.random() * 600);
+  }
+  spawnGlyph();
+})();
+
+// ===== NEON BARS =====
+(function() {
+  const neonColors = ['#00ffaa','#00c3ff','#7b61ff','#ff00ff','#ff6600','#ffff00','#ff0055'];
+  function spawnBar() {
+    const bar = document.createElement('div');
+    bar.className = 'neon-bar';
+    const col = neonColors[Math.floor(Math.random() * neonColors.length)];
+    const yp = 5 + Math.random() * 90;
+    const dur = 1.5 + Math.random() * 3;
+    bar.style.cssText = `
+      top: ${yp}vh;
+      background: linear-gradient(90deg, transparent, ${col}, transparent);
+      box-shadow: 0 0 10px ${col};
+      animation-duration: ${dur}s;
+      opacity: ${0.3 + Math.random() * 0.5};
+      height: ${1 + Math.random() * 2}px;
+    `;
+    document.body.appendChild(bar);
+    setTimeout(() => bar.remove(), dur * 1000 + 200);
+    setTimeout(spawnBar, 200 + Math.random() * 500);
+  }
+  spawnBar();
+})();
+
+// ===== EXPLOSIVE RINGS on logo hover =====
+const logo = document.getElementById('mainLogo');
+logo.addEventListener('mouseover', () => {
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => {
+      const r = document.createElement('div');
+      r.className = 'ring';
+      const size = 100 + i * 40;
+      const col = ['#00ffaa','#00c3ff','#7b61ff','#ff00ff','#ffff00'][i];
+      r.style.cssText = `
+        left: ${window.innerWidth/2}px;
+        top: ${window.innerHeight/2 - 60}px;
+        width: ${size}px;
+        height: ${size}px;
+        margin-left: ${-size/2}px;
+        margin-top: ${-size/2}px;
+        border-color: ${col};
+        box-shadow: 0 0 20px ${col};
+      `;
+      document.body.appendChild(r);
+      setTimeout(() => r.remove(), 1100);
+    }, i * 80);
+  }
+});
+
+// ===== RGB CHROMATIC ABERRATION on logo =====
+(function() {
+  const logo = document.getElementById('mainLogo');
+  let t = 0;
+  function update() {
+    t += 0.02;
+    const glitch = Math.random() < 0.02;
+    if (glitch) {
+      const ox = (Math.random() - 0.5) * 8;
+      const oy = (Math.random() - 0.5) * 4;
+      logo.style.filter = `drop-shadow(${ox}px ${oy}px 0 #ff00ff) drop-shadow(${-ox}px ${-oy}px 0 #00ffff) drop-shadow(0 0 30px #00ffaa)`;
+    } else {
+      const intensity = (Math.sin(t) + 1) * 0.5;
+      logo.style.filter = `drop-shadow(0 0 ${20 + intensity * 40}px rgba(0,255,170,${0.6 + intensity * 0.4})) drop-shadow(0 0 ${40 + intensity * 60}px rgba(0,195,255,${0.3 + intensity * 0.3}))`;
+    }
+    requestAnimationFrame(update);
+  }
+  update();
+})();
+
+// ===== TITLE HYPERDRIVE EFFECT =====
+(function() {
+  const title = document.querySelector('.title-main');
+  const chars = 'LAMECRAFT';
+  const glitchChars = '!@#$%^&*<>?{}[]|\\~';
+
+  setInterval(() => {
+    if (Math.random() < 0.15) {
+      const glitched = chars.split('').map(c =>
+        Math.random() < 0.3 ? glitchChars[Math.floor(Math.random() * glitchChars.length)] : c
+      ).join('');
+      title.textContent = glitched;
+      setTimeout(() => { title.textContent = 'LameCRAFT'; }, 80);
+    }
+  }, 200);
+})();
+
+// ===== PARALLAX on mousemove =====
+document.addEventListener('mousemove', e => {
+  const dx = (e.clientX / window.innerWidth - 0.5) * 20;
+  const dy = (e.clientY / window.innerHeight - 0.5) * 20;
+  document.getElementById('scene').style.transform = `translate(${dx}px, ${dy}px)`;
+  document.getElementById('gridLayer').style.backgroundPosition = `${dx}px ${dy}px`;
+});
+
+// ===== MASSIVE SCREEN SHAKE on keypress =====
+document.addEventListener('keydown', () => {
+  document.body.style.animation = 'none';
+  document.body.offsetHeight;
+  document.body.style.animation = '';
+  let t = 0;
+  const shake = setInterval(() => {
+    const dx = (Math.random() - 0.5) * 10;
+    const dy = (Math.random() - 0.5) * 10;
+    document.getElementById('scene').style.transform = `translate(${dx}px, ${dy}px)`;
+    t++;
+    if (t > 10) {
+      clearInterval(shake);
+      document.getElementById('scene').style.transform = '';
+    }
+  }, 30);
+});
+
+// ===== COLOR PALETTE CYCLE on spacebar =====
+let hue = 0;
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space') {
+    hue = (hue + 30) % 360;
+    document.getElementById('rgbScan').style.filter = `hue-rotate(${hue}deg)`;
+  }
+});
+
+// ===== KONAMI CODE EASTER EGG =====
+const konamiCode = [38,38,40,40,37,39,37,39,66,65];
+let konamiIdx = 0;
+document.addEventListener('keydown', e => {
+  if (e.keyCode === konamiCode[konamiIdx]) {
+    konamiIdx++;
+    if (konamiIdx === konamiCode.length) {
+      konamiIdx = 0;
+      // MEGA EXPLOSION
+      for (let i = 0; i < 20; i++) {
+        setTimeout(() => {
+          const r = document.createElement('div');
+          r.className = 'ring';
+          const size = 50 + Math.random() * 300;
+          const col = `hsl(${Math.random()*360},100%,60%)`;
+          r.style.cssText = `
+            left: ${Math.random()*100}vw; top: ${Math.random()*100}vh;
+            width: ${size}px; height: ${size}px;
+            margin-left: ${-size/2}px; margin-top: ${-size/2}px;
+            border-color: ${col};
+            box-shadow: 0 0 30px ${col};
+          `;
+          document.body.appendChild(r);
+          setTimeout(() => r.remove(), 1100);
+        }, i * 50);
+      }
+    }
+  } else { konamiIdx = 0; }
+});
+</script>
 </body>
 </html>
