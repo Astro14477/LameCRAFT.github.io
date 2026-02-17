@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LameCRAFT</title>
+  
+  <!-- Favicon (title icon) -->
+  <link rel="icon" type="image/jpeg" href="LameCRAFT.jpg" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Orbitron", "Segoe UI", sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      background: radial-gradient(circle at center, #0a0a0a 0%, #000000 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      animation: fadeIn 1.5s ease-in-out;
+    }
+
+    .logo {
+      width: 320px;
+      max-width: 80vw;
+      filter: drop-shadow(0 0 25px rgba(0, 255, 170, 0.7));
+      transition: transform 0.4s ease, filter 0.4s ease;
+    }
+
+    .logo:hover {
+      transform: scale(1.1);
+      filter: drop-shadow(0 0 50px rgba(0, 255, 170, 1));
+    }
+
+    .title {
+      margin-top: 30px;
+      font-size: 3.2rem;
+      letter-spacing: 10px;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, #00ffaa, #00c3ff, #00ffaa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 40px rgba(0, 255, 170, 0.4);
+      animation: glow 3s infinite alternate;
+    }
+
+    @keyframes glow {
+      0% { text-shadow: 0 0 10px rgba(0,255,170,0.3); }
+      100% { text-shadow: 0 0 50px rgba(0,255,170,1); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="LameCRAFT.jpg" alt="LameCRAFT Logo" class="logo" />
+    <div class="title">LameCRAFT</div>
+  </div>
+</body>
+</html>
